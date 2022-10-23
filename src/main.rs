@@ -1,9 +1,8 @@
 use macroquad::window::{clear_background, next_frame};
 use macroquad::{color, input, shapes, window};
 
-mod types;
-
-use types::{Point, Vector};
+mod util;
+use util::{Point, Vector};
 
 fn config() -> window::Conf {
     window::Conf {
@@ -30,7 +29,7 @@ async fn main() {
     };
 
     state.spawners.push(BallSpawner {
-        position: Point::from((10.0, 10.0)),
+        position: Point::from((30.0, 30.0)),
 
         spawn_time: 45,
         frames: 0,
@@ -43,8 +42,17 @@ async fn main() {
             l.render();
         }
 
-        for b in &mut state.balls {
-            b.render();
+        for i in (0..state.balls.len()).rev() {
+            let b = &mut state.balls[i];
+            b.render(&state.lines);
+
+            if b.position.x > window::screen_width()
+                || b.position.y > window::screen_height()
+                || b.position.x < 0.0
+                || b.position.y < 0.0
+            {
+                state.balls.remove(i);
+            }
         }
 
         for s in &mut state.spawners {
@@ -104,9 +112,31 @@ struct Ball {
     pub velocity: Vector,
 }
 impl Ball {
-    pub fn render(&mut self) {
-        self.position.add(self.velocity);
+    pub fn render(&mut self, lines: &Vec<Line>) {
+        // force of gravity
+        self.velocity.y += 0.1;
 
+        let mut after = self.position + self.velocity;
+
+        for l in lines {
+            if util::intersect(self.position, after, l.start, l.end) {
+                // perpendicular to slope of line `l` 
+                let p: f32 = -1.0 / util::slope(l.start, l.end);
+
+                let x = (self.velocity.x.powi(2) + self.velocity.y.powi(2)).sqrt() / (p*p + 1.0).sqrt();
+                let r = -x.copysign(p);
+
+                // TODO: this only works 
+                self.velocity = Vector {
+                    x: r,
+                    y: p*r,
+                };
+
+                after = self.position + self.velocity;
+            }
+        }
+
+        self.position = after;
         shapes::draw_circle(self.position.x, self.position.y, 3.0, color::WHITE);
     }
 }
@@ -128,7 +158,7 @@ impl BallSpawner {
         if self.frames % self.spawn_time == 0 {
             return Some(Ball {
                 position: self.position,
-                velocity: Vector { x: 0.0, y: 2.0 },
+                velocity: Vector { x: 0.0, y: 0.0 },
             });
         }
 
