@@ -113,30 +113,26 @@ struct Ball {
 }
 impl Ball {
     pub fn render(&mut self, lines: &Vec<Line>) {
-        // force of gravity
-        self.velocity.y += 0.1;
-
-        let mut after = self.position + self.velocity;
+        let after = self.position + self.velocity;
 
         for l in lines {
             if util::intersect(self.position, after, l.start, l.end) {
-                // perpendicular to slope of line `l` 
+                // perpendicular to slope of line `l`
                 let p: f32 = -1.0 / util::slope(l.start, l.end);
 
-                let x = (self.velocity.x.powi(2) + self.velocity.y.powi(2)).sqrt() / (p*p + 1.0).sqrt();
+                let x = (self.velocity.x.powi(2) + self.velocity.y.powi(2)).sqrt()
+                    / (p * p + 1.0).sqrt();
                 let r = -x.copysign(p);
 
-                // TODO: this only works 
-                self.velocity = Vector {
-                    x: r,
-                    y: p*r,
-                };
-
-                after = self.position + self.velocity;
+                // FIX: balls can go through lines sloped down from the bottom
+                self.velocity = Vector { x: r, y: p * r };
             }
         }
 
-        self.position = after;
+        // force of gravity
+        self.velocity.y += 0.1;
+
+        self.position = self.position + self.velocity;
         shapes::draw_circle(self.position.x, self.position.y, 3.0, color::WHITE);
     }
 }

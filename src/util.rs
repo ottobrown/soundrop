@@ -27,12 +27,12 @@ pub struct Vector {
 }
 
 fn ccw(a: Point, b: Point, c: Point) -> bool {
-    (c.y-a.y) * (b.x-a.x) > (b.y-a.y) * (c.x-a.x)
+    (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
 }
 
 /// Check if line segments ab and bc intersect
 pub fn intersect(a: Point, b: Point, c: Point, d: Point) -> bool {
-    ccw(a,c,d) != ccw(b,c,d) && ccw(a,b,c) != ccw(a,b,d)
+    ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d)
 }
 
 pub fn slope(a: Point, b: Point) -> f32 {
