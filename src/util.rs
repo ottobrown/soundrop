@@ -35,6 +35,13 @@ pub fn intersect(a: Point, b: Point, c: Point, d: Point) -> bool {
     ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d)
 }
 
+/// Slope of a line that passes through (a, b)
 pub fn slope(a: Point, b: Point) -> f32 {
     (b.y - a.y) / (b.x - a.x)
+}
+
+/// Returns whether c is left of ab
+pub fn is_left(a: Point, b: Point, c: Point) -> bool {
+    // DEPENDS ON THE ORDER OF THE POINTS
+    ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) > 0.0
 }

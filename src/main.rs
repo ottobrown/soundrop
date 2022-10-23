@@ -28,6 +28,7 @@ async fn main() {
         line_start: None,
     };
 
+    // TODO: add ability to move, add, and remove spawners
     state.spawners.push(BallSpawner {
         position: Point::from((30.0, 30.0)),
 
@@ -61,6 +62,7 @@ async fn main() {
             }
         }
 
+        // TODO: add ability to delete lines
         match state.line_start {
             Some(p) => {
                 Line {
@@ -70,10 +72,16 @@ async fn main() {
                 .render();
 
                 if input::is_mouse_button_released(input::MouseButton::Left) {
-                    state.lines.push(Line {
-                        start: p,
-                        end: Point::from(input::mouse_position()),
-                    });
+                    let end = Point::from(input::mouse_position());
+
+                    // start should be the upper point
+                    let l = if p.y < end.y {
+                        Line { start: p, end: end }
+                    } else {
+                        Line { start: end, end: p }
+                    };
+
+                    state.lines.push(l);
 
                     state.line_start = None;
                 }
@@ -122,10 +130,18 @@ impl Ball {
 
                 let x = (self.velocity.x.powi(2) + self.velocity.y.powi(2)).sqrt()
                     / (p * p + 1.0).sqrt();
-                let r = -x.copysign(p);
 
-                // FIX: balls can go through lines sloped down from the bottom
-                self.velocity = Vector { x: r, y: p * r };
+                // check if before position is left of line `l`
+                if util::is_left(l.start, l.end, self.position) {
+                    self.velocity.x = -(x.abs());
+
+                    self.velocity.y = -p * x;
+                } else {
+                    self.velocity.x = x.abs();
+
+                    // correct
+                    self.velocity.y = p * x;
+                }
             }
         }
 
