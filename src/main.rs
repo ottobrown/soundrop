@@ -15,7 +15,9 @@ struct State {
     balls: Vec<Ball>,
     spawners: Vec<BallSpawner>,
 
+    /// The start of the line currently being drawn
     line_start: Option<Point>,
+    delete_line_start: Option<Point>,
 }
 
 #[macroquad::main(config)]
@@ -26,6 +28,7 @@ async fn main() {
         spawners: Vec::new(),
 
         line_start: None,
+        delete_line_start: None,
     };
 
     // TODO: add ability to move, add, and remove spawners
@@ -40,7 +43,7 @@ async fn main() {
         clear_background(color::BLACK);
 
         for l in &state.lines {
-            l.render();
+            l.render(color::WHITE);
         }
 
         for i in (0..state.balls.len()).rev() {
@@ -69,7 +72,7 @@ async fn main() {
                     start: p,
                     end: Point::from(input::mouse_position()),
                 }
-                .render();
+                .render(color::WHITE);
 
                 if input::is_mouse_button_released(input::MouseButton::Left) {
                     let end = Point::from(input::mouse_position());
@@ -93,6 +96,38 @@ async fn main() {
             }
         }
 
+        match state.delete_line_start {
+            Some(p) => {
+                Line {
+                    start: p,
+                    end: Point::from(input::mouse_position()),
+                }
+                .render(color::RED);
+
+                if input::is_mouse_button_released(input::MouseButton::Right) {
+                    let end = Point::from(input::mouse_position());
+
+                    let delete_line = Line { start: p, end: end };
+
+                    for i in (0..state.lines.len()).rev() {
+                        let l = state.lines[i];
+
+                        if util::intersect(l.start, l.end, delete_line.start, delete_line.end) {
+                            state.lines.remove(i);
+                        }
+                    }
+
+                    state.delete_line_start = None;
+                }
+            }
+
+            None => {
+                if input::is_mouse_button_down(input::MouseButton::Right) {
+                    state.delete_line_start = Some(Point::from(input::mouse_position()));
+                }
+            }
+        }
+
         next_frame().await;
     }
 }
@@ -103,14 +138,14 @@ struct Line {
     pub end: Point,
 }
 impl Line {
-    pub fn render(&self) {
+    pub fn render(&self, color: color::Color) {
         shapes::draw_line(
             self.start.x,
             self.start.y,
             self.end.x,
             self.end.y,
             4.0,
-            color::WHITE,
+            color,
         );
     }
 }

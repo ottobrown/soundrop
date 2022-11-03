@@ -9,6 +9,6 @@ A Rust clone of Soundrop
 - [x] draw lines
 - [x] ball spawner
 - [x] bounce balls off lines
-- [ ] delete lines
+- [x] delete lines
 - [ ] create, delete, and move ball spawners
 - [ ] THE SOUND
