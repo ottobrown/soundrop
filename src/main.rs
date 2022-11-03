@@ -17,6 +17,7 @@ struct State {
 
     /// The start of the line currently being drawn
     line_start: Option<Point>,
+    /// The start of the red line that deletes other lines
     delete_line_start: Option<Point>,
 }
 
@@ -65,7 +66,6 @@ async fn main() {
             }
         }
 
-        // TODO: add ability to delete lines
         match state.line_start {
             Some(p) => {
                 Line {
@@ -174,7 +174,6 @@ impl Ball {
                 } else {
                     self.velocity.x = x.abs();
 
-                    // correct
                     self.velocity.y = p * x;
                 }
             }
